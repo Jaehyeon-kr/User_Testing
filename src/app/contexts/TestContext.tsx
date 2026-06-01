@@ -114,6 +114,7 @@ export function TestProvider({ children, onTaskStart }: { children: ReactNode; o
   const startTest = () => {
     setCurrentTask(0);
     setPhase("task-briefing");
+    navigate("/test" + versionParam);
   };
 
   const startTask = () => {

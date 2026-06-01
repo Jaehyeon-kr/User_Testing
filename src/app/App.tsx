@@ -45,22 +45,23 @@ import { OrderHistory as OrderHistory_A } from "../../src_version_A/app/componen
 
 function TestStartBar() {
   const navigate = useNavigate();
-  const { phase, participantId, setParticipantId } = useTest();
+  const { phase, participantId, setParticipantId, startTest } = useTest();
   const [selectedVersion, setSelectedVersion] = useState<"A" | "B">(
     () => (new URLSearchParams(window.location.search).get("version") === "A" ? "A" : "B")
   );
 
   // 테스트 진행 중이거나 /test 페이지에 있으면 숨김
   if (phase !== "idle" && phase !== "intro") return null;
+  if (window.location.pathname === "/test") return null;
 
   const handleStart = () => {
-    const versionParam = selectedVersion === "A" ? "?version=A" : "";
     // 버전이 바뀌면 페이지 자체를 리로드해서 URL 파라미터 반영
     const currentVersion = new URLSearchParams(window.location.search).get("version") === "A" ? "A" : "B";
     if (currentVersion !== selectedVersion) {
+      const versionParam = selectedVersion === "A" ? "?version=A" : "";
       window.location.href = "/test" + versionParam;
     } else {
-      navigate("/test" + versionParam);
+      startTest();
     }
   };
 
