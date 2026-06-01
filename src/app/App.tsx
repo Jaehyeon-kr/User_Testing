@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router";
-import { useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { useState, useEffect } from "react";
 import { DeviceFrame } from "./components/DeviceFrame";
 import { StockProvider } from "./contexts/StockContext";
 
@@ -43,100 +43,132 @@ import { TradeScreen as TradeScreen_A } from "../../src_version_A/app/components
 import { BankingScreen as BankingScreen_A } from "../../src_version_A/app/components/BankingScreen";
 import { OrderHistory as OrderHistory_A } from "../../src_version_A/app/components/OrderHistory";
 
-function TestStartBar() {
-  const navigate = useNavigate();
-  const { phase, participantId, setParticipantId, startTest } = useTest();
+// 풀스크린 시작 화면 (phase === "idle" 일 때)
+function StartScreen() {
+  const { participantId, setParticipantId, startTest } = useTest();
   const [selectedVersion, setSelectedVersion] = useState<"A" | "B">(
     () => (new URLSearchParams(window.location.search).get("version") === "A" ? "A" : "B")
   );
 
-  // 테스트 진행 중이거나 /test 페이지에 있으면 숨김
-  if (phase !== "idle" && phase !== "intro") return null;
-  if (window.location.pathname === "/test") return null;
-
   const handleStart = () => {
-    // 버전이 바뀌면 페이지 자체를 리로드해서 URL 파라미터 반영
     const currentVersion = new URLSearchParams(window.location.search).get("version") === "A" ? "A" : "B";
     if (currentVersion !== selectedVersion) {
       const versionParam = selectedVersion === "A" ? "?version=A" : "";
-      window.location.href = "/test" + versionParam;
-    } else {
-      startTest();
+      window.location.href = "/" + versionParam;
+      return;
     }
+    startTest();
   };
 
   return (
     <div style={{
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      background: "#1A1A1A",
-      padding: "12px 24px",
+      width: "100%",
+      minHeight: "100vh",
       display: "flex",
+      flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      gap: 12,
-      zIndex: 9998,
+      background: "linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%)",
+      fontFamily: "'Noto Sans KR', sans-serif",
+      padding: 24,
     }}>
-      <input
-        type="text"
-        value={participantId}
-        onChange={(e) => setParticipantId(e.target.value)}
-        placeholder="참가자 ID (예: P01)"
-        style={{
-          padding: "8px 14px",
-          borderRadius: 8,
-          border: "none",
-          fontSize: 14,
-          width: 180,
-          outline: "none",
-        }}
-      />
-      <div style={{ display: "flex", gap: 4 }}>
-        {(["A", "B"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => setSelectedVersion(v)}
+      <div style={{
+        background: "white",
+        borderRadius: 24,
+        padding: "48px 40px",
+        maxWidth: 440,
+        width: "100%",
+        textAlign: "center",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+      }}>
+        <div style={{ fontSize: 40, marginBottom: 8 }}>📋</div>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1A1A1A", marginBottom: 8 }}>
+          T-STOCK 사용성 테스트
+        </h1>
+        <p style={{ fontSize: 14, color: "#888", marginBottom: 32 }}>
+          주식 앱 프로토타입 A/B 사용성 평가
+        </p>
+
+        {/* 참가자 ID */}
+        <div style={{ marginBottom: 20, textAlign: "left" }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: "#555", marginBottom: 6, display: "block" }}>
+            참가자 ID
+          </label>
+          <input
+            type="text"
+            value={participantId}
+            onChange={(e) => setParticipantId(e.target.value)}
+            placeholder="예: P01"
             style={{
-              padding: "8px 16px",
-              borderRadius: 8,
-              border: selectedVersion === v ? "2px solid white" : "2px solid transparent",
-              background: v === "A" ? "#1565C0" : "#FF6600",
-              color: "white",
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: "pointer",
-              opacity: selectedVersion === v ? 1 : 0.5,
+              width: "100%",
+              padding: "12px 16px",
+              borderRadius: 12,
+              border: "2px solid #E0E0E0",
+              fontSize: 16,
+              outline: "none",
+              boxSizing: "border-box",
+              transition: "border-color 0.2s",
             }}
-          >
-            {v}버전
-          </button>
-        ))}
+            onFocus={(e) => e.target.style.borderColor = "#FF6600"}
+            onBlur={(e) => e.target.style.borderColor = "#E0E0E0"}
+          />
+        </div>
+
+        {/* 버전 선택 */}
+        <div style={{ marginBottom: 28, textAlign: "left" }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: "#555", marginBottom: 6, display: "block" }}>
+            테스트 버전
+          </label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {(["A", "B"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setSelectedVersion(v)}
+                style={{
+                  flex: 1,
+                  padding: "14px 0",
+                  borderRadius: 12,
+                  border: selectedVersion === v ? "2px solid " + (v === "A" ? "#1565C0" : "#FF6600") : "2px solid #E0E0E0",
+                  background: selectedVersion === v ? (v === "A" ? "#1565C0" : "#FF6600") : "white",
+                  color: selectedVersion === v ? "white" : "#888",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                {v}버전 {v === "A" ? "(수정 전)" : "(수정 후)"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 시작 버튼 */}
+        <button
+          onClick={handleStart}
+          disabled={!participantId.trim()}
+          style={{
+            width: "100%",
+            padding: "16px 0",
+            borderRadius: 12,
+            border: "none",
+            background: participantId.trim() ? "#FF6600" : "#E0E0E0",
+            color: participantId.trim() ? "white" : "#AAA",
+            fontSize: 18,
+            fontWeight: 700,
+            cursor: participantId.trim() ? "pointer" : "default",
+            transition: "all 0.2s",
+          }}
+        >
+          테스트 시작하기
+        </button>
       </div>
-      <button
-        onClick={handleStart}
-        disabled={!participantId.trim()}
-        style={{
-          padding: "8px 24px",
-          borderRadius: 8,
-          border: "none",
-          background: participantId.trim() ? "#FF6600" : "#555",
-          color: "white",
-          fontSize: 14,
-          fontWeight: 700,
-          cursor: participantId.trim() ? "pointer" : "default",
-        }}
-      >
-        테스트 시작
-      </button>
+
+      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginTop: 24 }}>
+        서울과학기술대학교 UX 디자인 · 사용성 평가
+      </p>
     </div>
   );
-}
-
-interface MenuSettingsState {
-  activeMenus: Array<{ id: number; name: string; enabled: boolean }>;
-  hiddenMenus: Array<{ id: number; name: string; enabled: boolean }>;
 }
 
 // A/B 버전 감지: URL에 ?version=A 이면 A버전, 아니면 B버전(기본)
@@ -145,11 +177,11 @@ function useABVersion(): "A" | "B" {
   return params.get("version") === "A" ? "A" : "B";
 }
 
-export default function App() {
+function AppInner() {
   const version = useABVersion();
+  const { phase } = useTest();
   const [showModal, setShowModal] = useState(false);
   const [isSimpleMode, setIsSimpleMode] = useState(false);
-  const [menuSettings, setMenuSettings] = useState<MenuSettingsState | null>(null);
 
   const handleSimpleToggle = () => {
     if (!isSimpleMode) {
@@ -168,9 +200,7 @@ export default function App() {
     setShowModal(false);
   };
 
-  const handleSaveMenuSettings = (settings: MenuSettingsState) => {
-    setMenuSettings(settings);
-  };
+  const handleSaveMenuSettings = () => {};
 
   // 버전별 컴포넌트 선택
   const Home = version === "A" ? F01HomeScreen_A : F01HomeScreen;
@@ -184,81 +214,98 @@ export default function App() {
   const Banking = version === "A" ? BankingScreen_A : BankingScreen;
   const Orders = version === "A" ? OrderHistory_A : OrderHistory;
 
+  // 태스크 시작 시 앱 상태 초기화
+  useEffect(() => {
+    if (phase === "task-running") {
+      setIsSimpleMode(false);
+      setShowModal(false);
+    }
+  }, [phase]);
+
+  // phase가 idle이면 풀스크린 시작 화면
+  if (phase === "idle") {
+    return <StartScreen />;
+  }
+
+  return (
+    <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200" style={{ fontFamily: "'Noto Sans KR', sans-serif" }}>
+      {/* A/B 버전 표시 배지 */}
+      <div style={{
+        position: "fixed",
+        top: 8,
+        right: 8,
+        zIndex: 9999,
+        background: version === "A" ? "#1565C0" : "#FF6600",
+        color: "white",
+        padding: "4px 12px",
+        borderRadius: "12px",
+        fontSize: "11px",
+        fontWeight: 700,
+        opacity: 0.9
+      }}>
+        {version === "A" ? "A (수정 전)" : "B (수정 후)"}
+      </div>
+
+      {/* 태스크 진행 중 플로팅 오버레이 */}
+      <TestFloatingOverlay />
+
+      <DeviceFrame>
+        <div className="w-full h-full bg-white relative">
+          <Routes>
+            <Route
+              path="/"
+              element={<TestGuide />}
+            />
+            <Route
+              path="/home"
+              element={
+                isSimpleMode ? (
+                  <SimpleHome onSimpleToggle={handleSimpleToggle} />
+                ) : (
+                  <Home onSimpleToggle={handleSimpleToggle} />
+                )
+              }
+            />
+            <Route path="/simple-home" element={<SimpleHome onSimpleToggle={handleSimpleToggle} />} />
+            <Route path="/settings" element={<Settings onSave={handleSaveMenuSettings} />} />
+            <Route path="/simple-home-custom" element={<F05SimpleHomeCustom onSimpleToggle={handleSimpleToggle} />} />
+            <Route path="/simple-home-extra" element={<F05SimpleHomeWithExtraMenus onSimpleToggle={handleSimpleToggle} />} />
+            <Route path="/ai-info" element={<AIInfo />} />
+            <Route path="/stock-detail" element={<StockDetail />} />
+            <Route path="/stock-skhynix" element={<F07StockSKHynix />} />
+            <Route path="/stock-naver" element={<F07StockNAVER />} />
+            <Route path="/stock-opinion" element={<StockOpinion />} />
+            <Route path="/stock-ai-analysis" element={<F09StockAIAnalysis />} />
+            <Route path="/balance" element={<BalanceScreen />} />
+            <Route path="/order-history" element={<Orders />} />
+            <Route path="/trade" element={<Trade />} />
+            <Route path="/banking" element={<Banking />} />
+            <Route path="/global" element={<F01GlobalHome onSimpleToggle={handleSimpleToggle} />} />
+            <Route path="/global-simple" element={<F03GlobalSimple onSimpleToggle={handleSimpleToggle} />} />
+            <Route path="/ai-info-global" element={<F06AIInfoGlobal />} />
+            <Route path="/stock-global" element={<StockGlobal />} />
+            <Route path="/stock-global-aapl" element={<F07StockGlobalAAPL />} />
+            <Route path="/stock-global-tsla" element={<F07StockGlobalTSLA />} />
+            <Route path="/balance-global" element={<BalanceGlobal />} />
+            <Route path="/trade-global" element={<TradeGlobal />} />
+            <Route path="/test" element={<TestGuide />} />
+          </Routes>
+
+          {showModal && (
+            <F02SimpleModal onConfirm={handleConfirmSimple} onCancel={handleCancelSimple} />
+          )}
+        </div>
+      </DeviceFrame>
+    </div>
+  );
+}
+
+export default function App() {
   return (
     <StockProvider>
       <BrowserRouter>
-        <TestProvider onTaskStart={() => {
-          setIsSimpleMode(false);
-          setShowModal(false);
-        }}>
-        <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200" style={{ fontFamily: "'Noto Sans KR', sans-serif" }}>
-          {/* A/B 버전 표시 배지 (실험 진행자용) */}
-          <div style={{
-            position: "fixed",
-            top: 8,
-            right: 8,
-            zIndex: 9999,
-            background: version === "A" ? "#1565C0" : "#FF6600",
-            color: "white",
-            padding: "4px 12px",
-            borderRadius: "12px",
-            fontSize: "11px",
-            fontWeight: 700,
-            opacity: 0.9
-          }}>
-            {version === "A" ? "A (수정 전)" : "B (수정 후)"}
-          </div>
-
-          {/* 태스크 진행 중 플로팅 오버레이 (타이머 + 완료 버튼) */}
-          <TestFloatingOverlay />
-
-          <DeviceFrame>
-            <div className="w-full h-full bg-white relative">
-              <Routes>
-              <Route
-                path="/"
-                element={
-                  isSimpleMode ? (
-                    <SimpleHome onSimpleToggle={handleSimpleToggle} />
-                  ) : (
-                    <Home onSimpleToggle={handleSimpleToggle} />
-                  )
-                }
-              />
-              <Route path="/simple-home" element={<SimpleHome onSimpleToggle={handleSimpleToggle} />} />
-              <Route path="/settings" element={<Settings onSave={handleSaveMenuSettings} />} />
-              <Route path="/simple-home-custom" element={<F05SimpleHomeCustom onSimpleToggle={handleSimpleToggle} />} />
-              <Route path="/simple-home-extra" element={<F05SimpleHomeWithExtraMenus onSimpleToggle={handleSimpleToggle} />} />
-              <Route path="/ai-info" element={<AIInfo />} />
-              <Route path="/stock-detail" element={<StockDetail />} />
-              <Route path="/stock-skhynix" element={<F07StockSKHynix />} />
-              <Route path="/stock-naver" element={<F07StockNAVER />} />
-              <Route path="/stock-opinion" element={<StockOpinion />} />
-              <Route path="/stock-ai-analysis" element={<F09StockAIAnalysis />} />
-              <Route path="/balance" element={<BalanceScreen />} />
-              <Route path="/order-history" element={<Orders />} />
-              <Route path="/trade" element={<Trade />} />
-              <Route path="/banking" element={<Banking />} />
-              <Route path="/global" element={<F01GlobalHome onSimpleToggle={handleSimpleToggle} />} />
-              <Route path="/global-simple" element={<F03GlobalSimple onSimpleToggle={handleSimpleToggle} />} />
-              <Route path="/ai-info-global" element={<F06AIInfoGlobal />} />
-              <Route path="/stock-global" element={<StockGlobal />} />
-              <Route path="/stock-global-aapl" element={<F07StockGlobalAAPL />} />
-              <Route path="/stock-global-tsla" element={<F07StockGlobalTSLA />} />
-              <Route path="/balance-global" element={<BalanceGlobal />} />
-              <Route path="/trade-global" element={<TradeGlobal />} />
-              <Route path="/test" element={<TestGuide />} />
-            </Routes>
-
-            {showModal && (
-              <F02SimpleModal onConfirm={handleConfirmSimple} onCancel={handleCancelSimple} />
-            )}
-            </div>
-          </DeviceFrame>
-
-          {/* 웹 하단 고정 바: 테스트 시작 */}
-          <TestStartBar />
-        </div>
+        <TestProvider>
+          <AppInner />
         </TestProvider>
       </BrowserRouter>
     </StockProvider>

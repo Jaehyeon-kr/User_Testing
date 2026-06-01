@@ -114,7 +114,7 @@ export function TestProvider({ children, onTaskStart }: { children: ReactNode; o
   const startTest = () => {
     setCurrentTask(0);
     setPhase("task-briefing");
-    navigate("/test" + versionParam);
+    navigate("/" + versionParam);
   };
 
   const startTask = () => {
@@ -126,7 +126,7 @@ export function TestProvider({ children, onTaskStart }: { children: ReactNode; o
     timerRef.current = setInterval(() => {
       setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
     }, 100);
-    navigate("/" + versionParam);
+    navigate("/home" + versionParam);
   };
 
   const completeTask = () => {
@@ -136,7 +136,7 @@ export function TestProvider({ children, onTaskStart }: { children: ReactNode; o
     }
     taskTimeRef.current = Math.floor((Date.now() - startTimeRef.current) / 1000);
     setPhase("task-survey");
-    navigate("/test" + versionParam);
+    navigate("/" + versionParam);
   };
 
   const submitTaskSurvey = (ease: number, confidence: number, info: number) => {
@@ -232,14 +232,16 @@ export function TestProvider({ children, onTaskStart }: { children: ReactNode; o
   };
 
   const resetTest = () => {
-    setPhase("intro");
+    setPhase("idle");
     setCurrentTask(0);
     setTaskResults([]);
     setSusResult(null);
+    setParticipantId("");
+    navigate("/" + versionParam);
   };
 
   const goToTest = () => {
-    navigate("/test" + versionParam);
+    navigate("/" + versionParam);
   };
 
   return (
