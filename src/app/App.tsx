@@ -229,23 +229,6 @@ function AppInner() {
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200" style={{ fontFamily: "'Noto Sans KR', sans-serif" }}>
-      {/* A/B 버전 표시 배지 */}
-      <div style={{
-        position: "fixed",
-        top: 8,
-        right: 8,
-        zIndex: 9999,
-        background: version === "A" ? "#1565C0" : "#FF6600",
-        color: "white",
-        padding: "4px 12px",
-        borderRadius: "12px",
-        fontSize: "11px",
-        fontWeight: 700,
-        opacity: 0.9
-      }}>
-        {version === "A" ? "A (수정 전)" : "B (수정 후)"}
-      </div>
-
       {/* 태스크 진행 중 플로팅 오버레이 */}
       <TestFloatingOverlay />
 
